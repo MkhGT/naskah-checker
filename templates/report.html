@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Laporan - {{ r.meta.nama_berkas }}{% endblock %}
+{% block content %}
+{% set s = r.ringkasan %}
+<h1>Laporan pemeriksaan</h1>
+<p class="lead"><strong>{{ r.meta.nama_berkas }}</strong><br>
+  {% if s.judul %}Judul: {{ s.judul }}<br>{% endif %}
+  <small>Jenis: {{ 'Penelitian orisinal' if r.meta.jenis == 'orisinal' else 'Review/survei' }} &middot; Diperiksa {{ r.meta.dibuat }}</small></p>
+
+{% if r.meta.pembuat and not r.meta.pembuat.word %}
+<div class="alert warn" role="note">
+  <strong>Berkas ini tampaknya dibuat dengan {{ r.meta.pembuat.nama }}, bukan Microsoft Word.</strong>
+  Sistem dirancang dan diuji untuk berkas .docx hasil Microsoft Word, sehingga hasil pemeriksaan (misalnya jumlah halaman,
+  daftar pustaka, atau header dan footer) dapat berbeda dari yang sebenarnya. Untuk hasil yang paling dapat diandalkan,
+  buka dokumen di Microsoft Word, simpan ulang sebagai .docx, lalu periksa kembali.
+</div>
+{% endif %}
+
+<section class="cards">
+  <div class="stat"><b>{{ s.sesuai }}/{{ s.kriteria_total }}</b><span>kriteria sesuai</span></div>
+  <div class="stat fail"><b>{{ s.temuan.error }}</b><span>kesalahan</span></div>
+  <div class="stat warn"><b>{{ s.temuan.warning }}</b><span>peringatan</span></div>
+  <div class="stat"><b>{{ s.temuan.info }}</b><span>saran</span></div>
+</section>
+<div class="bar" role="img" aria-label="{{ s.persen_sesuai }} persen kriteria sesuai"><i style="width: {{ s.persen_sesuai }}%"></i></div>
+
+<div class="actions">
+  <a class="btn" href="/unduh/{{ job_id }}/docx">Unduh naskah berkomentar (.docx)</a>
+  <a class="btn ghost" href="/unduh/{{ job_id }}/json">Laporan JSON</a>
+  <a class="btn ghost" href="/">Periksa naskah lain</a>
+</div>
+<p class="hint">Dokumen berkomentar memuat {{ r.meta.komentar }} komentar Word pada lokasi temuan. Dokumen asli tidak diubah.</p>
+
+<div class="retention">
+  <p><strong>Privasi:</strong> naskah dan hasil pemeriksaan ini disimpan sementara di server dan dihapus otomatis dalam
+    sekitar <strong>{{ sisa_menit }} menit</strong>. Unduh hasil yang Anda perlukan sebelum itu, atau hapus sekarang.</p>
+  <form action="/hapus/{{ job_id }}" method="post"
+        onsubmit="return confirm('Hapus naskah dan hasil pemeriksaan dari server sekarang? Tindakan ini tidak dapat dibatalkan.');">
+    <button type="submit" class="btn danger">Hapus sekarang</button>
+  </form>
+</div>
+
+<h2>Hasil per kriteria</h2>
+{% set ns = namespace(g="") %}
+{% for k in r.kriteria %}
+  {% if k.group and k.group != ns.g %}{% set ns.g = k.group %}<h3 class="grp">{{ k.group }}</h3>{% endif %}
+  {% set st = STATUS[k.status] %}
+  <details class="crit-item {{ st[1] }}" {% if k.status in ('fail','warn') %}open{% endif %}>
+    <summary><span class="badge {{ st[1] }}">{{ st[0] }}</span>
+      <span class="code">{{ k.code }}</span> {{ k.name }}
+      {% if k.note %}<small class="note">{{ k.note }}</small>{% endif %}</summary>
+    {% if k.findings %}
+    <ul class="findings">
+      {% for f in k.findings %}
+      <li class="{{ f.severity }}">
+        <div>{{ f.message }}{% if f.source == 'M5' %} <small>(Crossref)</small>{% endif %}</div>
+        {% if f.excerpt %}<blockquote>{{ f.excerpt }}</blockquote>{% endif %}
+        {% if f.suggestion %}<div class="sug">Saran: {{ f.suggestion }}</div>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="okmsg">Tidak ada temuan.</p>{% endif %}
+  </details>
+{% endfor %}
+
+{% if r.crossref %}
+<h2>Verifikasi referensi (Crossref)</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>No.</th><th>Status</th><th>DOI</th><th>Kemiripan</th><th>Keterangan</th></tr></thead>
+  <tbody>{% for c in r.crossref %}{% set lab = CR_LABEL.get(c.status, (c.status, 'skip')) %}
+    <tr><td>[{{ c.num or '?' }}]</td><td><span class="badge {{ lab[1] }}">{{ lab[0] }}</span></td>
+        <td>{{ c.crossref_doi or c.doi or '-' }}</td>
+        <td>{{ '%.0f%%' % (c.similarity * 100) if c.similarity is not none else '-' }}</td>
+        <td>{{ c.message }}{% if c.crossref_title and c.status in ('tidak_cocok','ditemukan_tanpa_doi') %}<br><small>Crossref: {{ c.crossref_title }}</small>{% endif %}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% elif not r.meta.crossref_aktif %}
+<p class="hint">Verifikasi Crossref dinonaktifkan pada server ini.</p>
+{% endif %}
+{% endblock %}

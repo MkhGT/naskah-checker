@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}Pemeriksa Naskah JISINTA{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  {# Halaman lain (mis. laporan) memakai blok "main" bawaan; halaman beranda menggantinya dengan hero lebar penuh. #}
+  {% block main %}
+  <main class="wrap">
+    <a href="/" class="mini-brand"><span class="dot"></span>Pemeriksa Naskah <b>JISINTA</b></a>
+    {% block content %}{% endblock %}
+  </main>
+  {% endblock %}
+  <footer class="foot">
+    <div class="foot-in">Pemeriksaan otomatis berdasarkan template jurnal. Hasilnya bersifat membantu; keputusan akhir tetap ada pada penulis dan editor.</div>
+  </footer>
+</body>
+</html>

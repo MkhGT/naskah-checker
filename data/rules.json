@@ -1,0 +1,471 @@
+{
+  "versi": "2.0",
+  "sumber": "Template-Final.docx (JISINTA UNTIRTA) + kriteria final pengelola",
+  "catatan": "Urutan dan kelompok mengikuti kriteria final (A Pengaturan dokumen, B Identitas dokumen, C Isi dokumen, D Referensi). K18 ditangani M4 (+M5 Crossref); K01-K17 oleh M3. body_columns (K03), allowlist/force_terms (K14.foreign_italic), dan ambang lain adalah kebijakan jurnal: sesuaikan di sini tanpa mengubah kode.",
+  "kriteria": [
+    {
+      "id": 1,
+      "kode": "K01",
+      "kelompok": "A. Pengaturan dokumen",
+      "nama": "Ukuran kertas",
+      "modul": "M3",
+      "check": "paper_size",
+      "severity": "error",
+      "params": {
+        "paper": "A4"
+      },
+      "sumber": "Naskah dicetak pada kertas A4 (semua section)"
+    },
+    {
+      "id": 2,
+      "kode": "K02",
+      "kelompok": "A. Pengaturan dokumen",
+      "nama": "Margin",
+      "modul": "M3",
+      "check": "margins",
+      "severity": "error",
+      "params": {
+        "top_cm": 2.5,
+        "left_cm": 2.5,
+        "right_cm": 2.0,
+        "bottom_cm": 2.0,
+        "tolerance_cm": 0.1
+      },
+      "sumber": "Margin atas dan kiri 2,5 cm, margin kanan dan bawah 2 cm (semua section)"
+    },
+    {
+      "id": 3,
+      "kode": "K03",
+      "kelompok": "A. Pengaturan dokumen",
+      "nama": "Layout kolom (identitas 1 kolom; isi dimulai dari Pendahuluan)",
+      "modul": "M3",
+      "check": "columns",
+      "severity": "error",
+      "params": {
+        "identity_columns": 1,
+        "body_columns": 1
+      },
+      "sumber": "Bagian identitas (judul sampai kata kunci) 1 kolom; tata letak kolom dimulai dari bagian isi (Pendahuluan). Jumlah kolom bagian isi = body_columns (SESUAIKAN dengan template final)"
+    },
+    {
+      "id": 4,
+      "kode": "K04",
+      "kelompok": "A. Pengaturan dokumen",
+      "nama": "Batas halaman",
+      "modul": "M3",
+      "check": "page_count",
+      "severity": "warning",
+      "params": {
+        "max_pages": {
+          "orisinal": 12,
+          "review": 16
+        },
+        "words_per_page_estimate": 600
+      },
+      "sumber": "Maksimal 12 halaman (artikel penelitian orisinal) dan 16 halaman (review/survei)"
+    },
+    {
+      "id": 5,
+      "kode": "K05",
+      "kelompok": "B. Identitas dokumen",
+      "nama": "Header dan footer (halaman pertama, ganjil, genap)",
+      "modul": "M3",
+      "check": "header_footer",
+      "severity": "error",
+      "params": {
+        "require_different_first_page": true,
+        "require_odd_even": true,
+        "contains": {
+          "header_first": [
+            "JURNAL INFORMATIKA DAN SISTEM INFORMASI UNTIRTA"
+          ],
+          "header_odd": [
+            "JISINTA"
+          ],
+          "header_even": [
+            "JISINTA",
+            "E-ISSN"
+          ]
+        },
+        "require_page_field": [
+          "footer_first",
+          "footer_odd",
+          "footer_even"
+        ],
+        "require_text_beyond_page": [
+          "footer_even"
+        ],
+        "placeholders": {
+          "footer_even": [
+            "Judul Naskah Harus Ringkas",
+            "Penulis1",
+            "Penulis2"
+          ]
+        },
+        "editor_fields": {
+          "header_odd": [
+            "Volume x",
+            "Bulan-Tahun"
+          ]
+        },
+        "require_table": [
+          "header_first",
+          "header_even",
+          "footer_first",
+          "footer_odd",
+          "footer_even"
+        ]
+      },
+      "sumber": "Header halaman pertama, ganjil, dan genap berbeda; footer memuat nomor halaman; footer genap memuat judul singkat dan nama penulis; isi header/footer berada di dalam tabel seperti template (kecuali header ganjil yang di template berupa paragraf biasa, jadi tidak ada di require_table)"
+    },
+    {
+      "id": 6,
+      "kode": "K06",
+      "kelompok": "B. Identitas dokumen",
+      "nama": "Judul (Cambria 16 pt, tebal, tengah, spasi sesudah 6 pt)",
+      "modul": "M3",
+      "check": "title",
+      "severity": "error",
+      "params": {
+        "max_words": 15,
+        "forbidden_terms": [
+          "tinjauan",
+          "gambaran umum",
+          "pendahuluan",
+          "review",
+          "studi kasus",
+          "kajian",
+          "survei",
+          "pendekatan",
+          "komparatif",
+          "analisis",
+          "investigasi"
+        ],
+        "format": {
+          "font": "Cambria",
+          "size_pt": 16.0,
+          "bold": true,
+          "alignment": "center",
+          "space_after_pt": 6.0,
+          "size_tolerance": 0.1,
+          "space_tolerance_pt": 0.5
+        }
+      },
+      "sumber": "Judul: Cambria 16 pt, tebal, rata tengah, spasi sesudah 6 pt; maksimal 15 kata; tidak memuat kata seperti Tinjauan/Gambaran Umum/Pendahuluan, Review, Studi Kasus/Kajian, Survei, Pendekatan, Komparatif, Analisis, Investigasi"
+    },
+    {
+      "id": 7,
+      "kode": "K07",
+      "kelompok": "B. Identitas dokumen",
+      "nama": "Penulis, afiliasi, dan penulis korespondensi",
+      "modul": "M3",
+      "check": "authors",
+      "severity": "error",
+      "params": {
+        "font": "Cambria",
+        "alignment": "center",
+        "author_size_pt": 10.0,
+        "affiliation_size_pt": 9.0,
+        "size_tolerance": 0.1,
+        "require_corresponding": true,
+        "placeholders": [
+          "Penulis Pertama",
+          "Penulis Kedua",
+          "Penulis Ketiga",
+          "(10 pt)",
+          "(9 pt)",
+          "Nama Penulis Korespondensi",
+          "nama@untirta.ac.id"
+        ],
+        "space_after_pt": 6.0,
+        "space_tolerance_pt": 0.5,
+        "identity_in_table": [
+          "informasi",
+          "korespondensi"
+        ],
+        "identity_single_table": true,
+        "require_article_info": true,
+        "corresponding_lines": true
+      },
+      "sumber": "Penulis: Cambria 10 pt, rata tengah, spasi sesudah 6 pt; afiliasi: Cambria 9 pt, rata tengah, spasi sesudah 6 pt; penanda angka penulis-afiliasi cocok; penulis korespondensi memuat email; Informasi/Riwayat Artikel dan Penulis Korespondensi berada di tabel identitas (satu tabel bersama Abstrak dan Kata Kunci); penulis korespondensi ditulis per baris: nama, afiliasi/instansi, email"
+    },
+    {
+      "id": 8,
+      "kode": "K08",
+      "kelompok": "B. Identitas dokumen",
+      "nama": "Abstrak",
+      "modul": "M3",
+      "check": "abstract",
+      "severity": "error",
+      "params": {
+        "min_words": 100,
+        "max_words": 250,
+        "allow_citations": false,
+        "require_in_table": true,
+        "format": {
+          "font": "Cambria",
+          "size_pt": 10.0,
+          "alignment": "justify",
+          "size_tolerance": 0.1
+        }
+      },
+      "sumber": "Abstrak terdiri atas 100-250 kata; tidak memuat sitasi; berada di tabel identitas; Cambria 10 pt rata kiri-kanan"
+    },
+    {
+      "id": 9,
+      "kode": "K09",
+      "kelompok": "B. Identitas dokumen",
+      "nama": "Kata kunci",
+      "modul": "M3",
+      "check": "keywords",
+      "severity": "error",
+      "params": {
+        "min": 3,
+        "max": 5,
+        "alphabetical": true,
+        "forbidden_words": [
+          "dan",
+          "dari"
+        ],
+        "require_in_table": true,
+        "format": {
+          "alignment": "left"
+        }
+      },
+      "sumber": "Terdiri atas 3-5 kata kunci; disusun berdasarkan urutan abjad; hindari kata penghubung dan/dari; berada di tabel identitas; rata kiri"
+    },
+    {
+      "id": 10,
+      "kode": "K10",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Struktur IMRaD",
+      "modul": "M3",
+      "check": "structure",
+      "severity": "error",
+      "params": {
+        "required": [
+          "pendahuluan",
+          "metodologi",
+          "hasil_pembahasan",
+          "kesimpulan",
+          "referensi"
+        ],
+        "enforce_order": true,
+        "optional": [
+          "ucapan"
+        ],
+        "reject_unknown": true,
+        "forbidden_patterns": [
+          "tinjauan\\s+(pustaka|literatur)",
+          "kajian\\s+(pustaka|teori|literatur)",
+          "landasan\\s+teori",
+          "studi\\s+(pustaka|literatur)"
+        ]
+      },
+      "sumber": "Struktur IMRaD: Pendahuluan, Metode, Hasil dan Pembahasan, Kesimpulan, Referensi (Ucapan Terima Kasih opsional); bagian lain seperti Tinjauan Pustaka tidak dianggap sesuai"
+    },
+    {
+      "id": 11,
+      "kode": "K11",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Format subjudul (indentasi dan spasi)",
+      "modul": "M3",
+      "check": "headings",
+      "severity": "warning",
+      "params": {
+        "levels": {
+          "1": {
+            "bold": true,
+            "caps": true,
+            "space_before_pt": 6.0,
+            "space_after_pt": 6.0
+          },
+          "2": {
+            "bold": true,
+            "caps": false,
+            "space_before_pt": 6.0,
+            "space_after_pt": 3.0
+          },
+          "3": {
+            "bold": "forbid",
+            "caps": false,
+            "space_before_pt": 6.0,
+            "space_after_pt": 2.0
+          }
+        },
+        "spacing_tolerance_pt": 0.5,
+        "indent": {
+          "left_in": 0.25,
+          "hanging_in": 0.25,
+          "tolerance_in": 0.03
+        },
+        "require_numbering": true,
+        "unnumbered_ok": [
+          "referensi"
+        ]
+      },
+      "sumber": "Subjudul: nomor rata di 0 dan teks menjorok 0,25 in (indentasi left 0,25 in dengan hanging 0,25 in); H1 spasi sebelum/sesudah 6/6 pt, H2 6/3 pt, H3 6/2 pt; H1 tebal kapital, H2 tebal, H3 tidak tebal; bernomor"
+    },
+    {
+      "id": 12,
+      "kode": "K12",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Jenis dan ukuran huruf, spasi",
+      "modul": "M3",
+      "check": "body_font",
+      "severity": "warning",
+      "params": {
+        "font": "Cambria",
+        "size_pt": 10.0,
+        "line_spacing": 1.15,
+        "line_spacing_tolerance": 0.05,
+        "size_tolerance": 0.1
+      },
+      "sumber": "huruf Cambria 10 pt; spasi 1,15 (style Normal pada template; teks template menyebut \"spasi tunggal\", tetapi style-nya 1,15)"
+    },
+    {
+      "id": 13,
+      "kode": "K13",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Jumlah paragraf Pendahuluan",
+      "modul": "M3",
+      "check": "intro_paragraphs",
+      "severity": "error",
+      "params": {
+        "min": 3,
+        "max": 6,
+        "min_words_per_paragraph": 15
+      },
+      "sumber": "Minimal 3 paragraf (disusun dalam 3-6 paragraf)"
+    },
+    {
+      "id": 14,
+      "kode": "K14",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Format paragraf isi (indentasi, perataan, istilah asing miring, spasi kosong)",
+      "modul": "M3",
+      "check": "body_paragraph",
+      "severity": "warning",
+      "params": {
+        "first_line_indent_cm": 1.27,
+        "indent_tolerance_cm": 0.15,
+        "alignment": "justify",
+        "min_words": 15,
+        "foreign_italic": {
+          "apply_to_language": "id",
+          "min_italic_ratio": 0.8,
+          "title_case_phrases": true,
+          "sentence_detection": true,
+          "allowlist": [
+            "data",
+            "internet",
+            "email",
+            "web",
+            "website",
+            "online",
+            "server",
+            "file",
+            "format",
+            "video",
+            "audio",
+            "model",
+            "sistem"
+          ],
+          "force_terms": [
+            "download",
+            "upload",
+            "software",
+            "hardware",
+            "database",
+            "login",
+            "cloud",
+            "backend",
+            "frontend",
+            "update"
+          ],
+          "abbreviations": [],
+          "extra_patterns": [
+            "\\bet al\\b",
+            "\\bi\\.e\\.",
+            "\\be\\.g\\.",
+            "\\bin vitro\\b",
+            "\\bin vivo\\b"
+          ]
+        },
+        "blank_space": {
+          "double_space": true,
+          "edge_space": true,
+          "space_before_punct": true,
+          "empty_paragraphs": true
+        }
+      },
+      "sumber": "Tata letak rata kiri-kanan; paragraf menjorok 1,27 cm; pada naskah berbahasa Indonesia, istilah asing di paragraf/isi subbab dicetak miring (italic), tidak berlaku untuk naskah berbahasa asing; tidak ada spasi ganda, spasi/Tab di awal atau akhir paragraf, spasi sebelum tanda baca, atau baris kosong pengatur jarak"
+    },
+    {
+      "id": 15,
+      "kode": "K15",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Caption, posisi, perataan gambar/tabel, dan isi tabel",
+      "modul": "M3",
+      "check": "captions",
+      "severity": "warning",
+      "params": {
+        "caption_size_pt": 8.0,
+        "size_tolerance": 0.1,
+        "table_caption": "above",
+        "figure_caption": "below",
+        "table_content": {
+          "font": "Cambria",
+          "size_pt": 8.0,
+          "size_tolerance": 0.1,
+          "header_bold": true
+        }
+      },
+      "sumber": "Gambar dan tabel disajikan rata tengah; caption tabel di atas, caption gambar di bawah; isi tabel Cambria 8 pt rata tengah, baris pertama tebal"
+    },
+    {
+      "id": 16,
+      "kode": "K16",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Gambar dan tabel disitasi dalam naskah",
+      "modul": "M3",
+      "check": "figure_citations",
+      "severity": "warning",
+      "params": {},
+      "sumber": "Gambar dan tabel wajib disitasi di dalam naskah"
+    },
+    {
+      "id": 17,
+      "kode": "K17",
+      "kelompok": "C. Isi dokumen",
+      "nama": "Kesimpulan tidak mengulang isi abstrak",
+      "modul": "M3",
+      "check": "conclusion",
+      "severity": "warning",
+      "params": {
+        "sentence_similarity": 0.8,
+        "overlap_ratio": 0.3,
+        "require_suggestion": true
+      },
+      "sumber": "Tidak mengulang isi abstrak; menyertakan saran untuk penelitian selanjutnya"
+    },
+    {
+      "id": 18,
+      "kode": "K18",
+      "kelompok": "D. Referensi",
+      "nama": "Sitasi dan daftar pustaka format IEEE, verifikasi Crossref",
+      "modul": "M4",
+      "check": "citations",
+      "severity": "error",
+      "params": {
+        "min_references": 20,
+        "journal_share_min": 0.8,
+        "recent_years": 5,
+        "reference_size_pt": 8.0,
+        "size_tolerance": 0.1,
+        "style": "IEEE"
+      },
+      "sumber": "Minimal 20 referensi; 80% artikel jurnal (sumber & DOI jelas) maks. 5 tahun terakhir; format IEEE [1]; huruf 8 pt"
+    }
+  ]
+}

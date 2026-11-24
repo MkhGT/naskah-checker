@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Pemeriksa Naskah JISINTA - Cek naskah Anda sebelum dikirim{% endblock %}
+
+{% block main %}
+{# ---- data bantu: ambil angka dari aturan supaya teks selalu cocok dengan pengaturan jurnal ---- #}
+{% set k3 = (kriteria|selectattr('id','equalto',3)|list|first) %}
+{% set k4 = (kriteria|selectattr('id','equalto',4)|list|first) %}
+{% set kolom = {1:'satu', 2:'dua', 3:'tiga'}.get(((k3.params if k3 else {}).get('body_columns')), 'dua') %}
+{% set maks = ((k4.params if k4 else {}).get('max_pages')) or {} %}
+{% set hal_asli = maks.get('orisinal', 12) %}
+{% set hal_review = maks.get('review', 16) %}
+
+{# ---- penjelasan setiap kriteria dalam bahasa sehari-hari ---- #}
+{% set T = {
+  'K01': ('Ukuran kertas', 'Naskah harus memakai kertas A4 di semua halaman.'),
+  'K02': ('Margin', 'Top 2,5 cm, Bottom 2 cm, Left 2,5 cm, dan Right 2 cm.'),
+  'K03': ('Jumlah kolom', 'Bagian judul sampai kata kunci ditulis dalam satu kolom. Mulai dari Pendahuluan, isi naskah ' ~ kolom ~ ' kolom.'),
+  'K04': ('Jumlah halaman', 'Penelitian orisinal paling banyak ' ~ hal_asli ~ ' halaman. Artikel review atau survei paling banyak ' ~ hal_review ~ ' halaman.'),
+  'K05': ('Header dan Footer', 'Isi header & footer setiap halaman mengikuti template: berbeda untuk halaman pertama, ganjil, dan genap, memuat nomor halaman otomatis, dan dibuat di dalam tabel.'),
+  'K06': ('Judul', 'Huruf Cambria ukuran 16 pt, tebal, rata tengah, paling banyak 15 kata. Hindari kata seperti “tinjauan”, “studi kasus”, atau “analisis”.'),
+  'K07': ('Penulis dan institusi', 'Nama penulis dan institusinya ditulis di tengah, di bawah judul, dihubungkan dengan angka kecil (superscript). Penulis korespondensi (Co-Author) dicantumkan pada tabel informasi artikel, ditulis per baris: nama penulis, afiliasi/instansi, lalu email.'),
+  'K08': ('Abstrak', 'Ringkasan naskah sepanjang 100 sampai 250 kata, tanpa kutipan sumber, dan diletakkan di dalam kotak tabel seperti pada template. Huruf Cambria ukuran 10 dengan teks rata kiri-kanan.'),
+  'K09': ('Kata kunci', 'Tiga sampai lima kata kunci, diurutkan sesuai abjad, tanpa kata sambung “dan” atau “dari”, berada di dalam kotak tabel informasi artikel, dan teksnya rata kiri.'),
+  'K10': ('Kerangka isi naskah', 'Urutan bagian: Pendahuluan, Metode, Hasil dan Pembahasan, Kesimpulan, lalu Referensi. Ucapan terima kasih boleh ditambahkan. Bagian lain, misalnya Tinjauan Pustaka, tidak dipakai.'),
+  'K11': ('Tampilan subjudul', 'Subjudul diberi nomor. Judul bagian utama tebal dan berhuruf kapital, subbagian tebal, sedangkan sub-subbagian tidak tebal. Jarak di atas dan bawahnya juga sudah ditentukan.'),
+  'K12': ('Huruf dan jarak antarbaris', 'Seluruh isi memakai huruf Cambria ukuran 10 pt dengan jarak antarbaris 1,15.'),
+  'K13': ('Panjang Pendahuluan', 'Pendahuluan terdiri dari 3 sampai 6 paragraf.'),
+  'K14': ('Kerapian paragraf', 'Baris pertama tiap paragraf menjorok 1,27 cm dan teks rata kiri-kanan. Pada naskah berbahasa Indonesia, istilah asing seperti “machine learning” dicetak miring. Tidak ada spasi ganda, spasi atau Tab di awal paragraf, spasi sebelum tanda baca, maupun baris kosong yang dipakai sebagai jarak.'),
+  'K15': ('Keterangan gambar dan tabel', 'Gambar dan tabel diletakkan di tengah. Keterangan tabel ada di atasnya, keterangan gambar di bawahnya, dengan huruf ukuran 8 pt. Isi tabel memakai huruf Cambria ukuran 8 pt, rata tengah, dan baris pertama (judul kolom) dicetak tebal.'),
+  'K16': ('Gambar dan tabel disebut di teks', 'Setiap gambar dan tabel harus disebut dalam kalimat, misalnya “seperti terlihat pada Gambar 1”. Serta tidak berada di awal paragraf, misalnya "Gambar 1 menunjukan ...".'),
+  'K17': ('Kesimpulan', 'Kesimpulan tidak mengulang isi abstrak dan memuat saran untuk penelitian selanjutnya.'),
+  'K18': ('Kutipan dan daftar pustaka', 'Sumber dikutip dengan nomor, misalnya [1]. Daftar pustaka minimal 20 sumber bergaya IEEE, sebagian besar dari artikel jurnal terbaru. Setiap sumber juga dicocokkan dengan basis data Crossref.')
+} %}
+{% set ICON = {
+  'A': '<path d="M7 3h7l5 5v13H7z M14 3v5h5" />',
+  'B': '<path d="M12 12a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M5 20c.8-3.6 3.6-5.5 7-5.5s6.200 1.900 7 5.500" />',
+  'C': '<path d="M5 6h14 M5 11h14 M5 16h9" />',
+  'D': '<path d="M5 5.500A2.500 2.500 0 0 1 7.500 3H19v15H7.500A2.500 2.500 0 0 0 5 20.500z M5 20.500A2.500 2.500 0 0 0 7.500 23H19" />'
+} %}
+{% set G = {
+  'A': 'Bentuk dasar halaman naskah',
+  'B': 'Bagian awal naskah',
+  'C': 'Cara isi naskah ditulis',
+  'D': 'Sumber yang Anda kutip'
+} %}
+
+{# ================= HERO ================= #}
+<header class="hero">
+  <div class="blob b1" aria-hidden="true"></div>
+  <div class="blob b2" aria-hidden="true"></div>
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="dot"></span>Pemeriksa Naskah &middot; JISINTA</span>
+      <h1>Pastikan naskah Anda <span class="hl">sesuai template</span> sebelum dikirim</h1>
+      <p class="sub">Unggah file Word Anda. Dalam hitungan detik, Anda mendapat laporan yang jelas dan salinan naskah dengan komentar tepat di bagian yang perlu dirapikan.</p>
+      <ul class="facts">
+        <li><span><b>{{ kriteria|length }}</b> hal yang dicek</span></li>
+        <li><span>Naskah asli <b>tidak diubah</b></span></li>
+        <li><span>Dihapus otomatis <b>{{ RETENTION_MINUTES }} menit</b> setelah diperiksa</span></li>
+      </ul>
+      <a class="cta-link" href="#unggah">Mulai periksa <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m0 0-6-6m6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+
+    <div class="mock" aria-hidden="true">
+      <div class="mock-card">
+        <div class="mock-top"><i></i><i></i><i></i><span>laporan-pemeriksaan</span></div>
+        <div class="mock-score"><b>16</b><span>dari 18 sesuai</span><div class="bar"><i style="width:88%"></i></div></div>
+        <div class="mock-row"><em class="ok">&#10003;</em><span>Ukuran kertas</span><small>Sesuai</small></div>
+        <div class="mock-row"><em class="ok">&#10003;</em><span>Abstrak</span><small>Sesuai</small></div>
+        <div class="mock-row"><em class="warn">!</em><span>Kata kunci</span><small>Perlu dirapikan</small></div>
+        <div class="mock-row"><em class="ok">&#10003;</em><span>Daftar pustaka</span><small>Sesuai</small></div>
+      </div>
+      <div class="mock-note"><b>Komentar di Word</b><span>“Kata kunci belum urut abjad.”</span></div>
+    </div>
+  </div>
+</header>
+
+{# ================= UNGGAH ================= #}
+<section class="container upload-wrap" id="unggah">
+  <form class="upload" action="/periksa" method="post" enctype="multipart/form-data" id="form-periksa">
+    <div class="upload-head">
+      <h2>Unggah naskah Anda</h2>
+      <p>Langkah ini hanya butuh satu berkas dan satu pilihan.</p>
+    </div>
+
+    {% if error %}<div class="alert fail" role="alert">{{ error }}</div>{% endif %}
+    {% if notice %}<div class="alert ok" role="status">{{ notice }}</div>{% endif %}
+
+    <div class="upload-grid">
+      <div class="field">
+        <span class="step"><b>1</b> Pilih berkas</span>
+        <label class="drop" for="berkas">
+          <input type="file" id="berkas" name="berkas" accept=".docx" required>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 6h14l10 10v24a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#eef2ff" stroke="#4f63e6" stroke-width="2" stroke-linejoin="round"/><path d="M28 6v10h10" fill="none" stroke="#4f63e6" stroke-width="2" stroke-linejoin="round"/><path d="M24 35V24m0 0-4 4m4-4 4 4" fill="none" stroke="#4f63e6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <strong class="drop-title" id="nama-berkas">Tarik berkas ke sini, atau klik untuk memilih</strong>
+          <span class="drop-hint" id="hint-berkas">Format .docx dari Microsoft Word, maksimal 10 MB</span>
+        </label>
+
+        <div class="tpl-box">
+          <span>Belum punya template?</span>
+          {% if TEMPLATE_URL %}
+          <a href="{{ TEMPLATE_URL }}" target="_blank" rel="noopener">Unduh template di sini</a>
+          {% else %}
+          {# isi alamat template lewat env TEMPLATE_URL, atau ganti langsung href di bawah #}
+          <a href="https://docs.google.com/uc?export=download&id=1CWtpXzb94sGmbtfSdFOwIUGjdyJoEuUE" class="off" aria-disabled="true">Unduh template di sini</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="step"><b>2</b> Pilih jenis artikel</span>
+        <div class="opts" role="radiogroup" aria-label="Jenis artikel">
+          <label class="opt">
+            <input type="radio" name="jenis" value="orisinal" checked>
+            <span class="opt-body"><b>Penelitian orisinal</b><small>Maksimal {{ hal_asli }} halaman</small></span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="jenis" value="review">
+            <span class="opt-body"><b>Review atau survei</b><small>Maksimal {{ hal_review }} halaman</small></span>
+          </label>
+        </div>
+        <button type="submit" class="go" id="tombol">
+          <span class="go-text">Periksa naskah</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m0 0-6-6m6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <p class="hint">Pengecekan sumber ke Crossref bisa memakan waktu beberapa detik.</p>
+        <p class="hint privacy">Naskah Anda disimpan sementara dan <strong>dihapus otomatis {{ RETENTION_MINUTES }} menit</strong> setelah diperiksa, atau kapan saja lewat tombol hapus.</p>
+      </div>
+    </div>
+  </form>
+</section>
+
+{# ================= KRITERIA ================= #}
+<section class="container criteria" id="kriteria">
+  <div class="section-head">
+    <span class="eyebrow soft">Yang kami periksa</span>
+    <h2>{{ kriteria|length }} hal yang dicek pada naskah Anda</h2>
+    <p>Berikut penjelasan singkat tiap pemeriksaan, supaya Anda bisa merapikan naskah dengan percaya diri.</p>
+  </div>
+
+  {% for grp, items in kriteria|groupby('kelompok') %}
+  {% set letter = grp[:1] %}
+  <div class="group g{{ loop.index0 % 4 }}">
+    <div class="group-head">
+      <span class="group-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ ICON.get(letter, '')|safe }}</svg></span>
+      <div>
+        <h3>{{ grp }}</h3>
+        <p>{{ G.get(letter, '') }}</p>
+      </div>
+    </div>
+    <div class="grid">
+      {% for k in items %}
+      {% set t = T.get(k.kode) %}
+      <article class="crit-card">
+        <span class="chip">{{ k.kode }}</span>
+        <h4>{{ t[0] if t else k.nama }}</h4>
+        <p>{{ t[1] if t else k.sumber }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+<script>
+  (function () {
+    var form = document.getElementById('form-periksa');
+    var input = document.getElementById('berkas');
+    var title = document.getElementById('nama-berkas');
+    var drop = input.closest('.drop');
+    var btn = document.getElementById('tombol');
+    var hint = document.getElementById('hint-berkas');
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      title.textContent = f ? f.name : 'Tarik berkas ke sini, atau klik untuk memilih';
+      hint.textContent = f ? 'Klik untuk mengganti berkas' : 'Format .docx dari Microsoft Word, maksimal 10 MB';
+      drop.classList.toggle('has-file', !!f);
+    });
+    ['dragenter', 'dragover'].forEach(function (n) {
+      drop.addEventListener(n, function () { drop.classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (n) {
+      drop.addEventListener(n, function () { drop.classList.remove('over'); });
+    });
+    form.addEventListener('submit', function () {
+      if (!input.files || !input.files.length) return;
+      btn.classList.add('busy');
+      btn.querySelector('.go-text').textContent = 'Sedang memeriksa…';
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+
+# pengaturan lokal / rahasia
+.env
+
+# naskah yang diunggah (privasi, jangan sampai ter-commit)
+instance/
+
+# hasil evaluasi dan naskah uji, sesuaikan dengan nama folder yang Anda pakai
+varian/
+hasil/
+naskah/
+
+# editor dan sistem operasi
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
