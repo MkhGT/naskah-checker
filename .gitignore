@@ -10,6 +10,9 @@ venv/
 
 # naskah yang diunggah (privasi, jangan sampai ter-commit)
 instance/
+naskah/
+varian/
+varians/
 
 # hasil evaluasi dan naskah uji, sesuaikan dengan nama folder yang Anda pakai
 varian/

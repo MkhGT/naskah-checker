@@ -19,7 +19,7 @@ Crossref (bawaan --crossref auto):
 
 Keluaran (folder --out, bawaan <folder>/hasil_evaluasi):
     hasil_per_berkas.csv        status 18 kriteria per berkas + jumlah temuan + durasi + apakah Crossref dipakai
-    evaluasi_per_kriteria.csv   TP/FN/FP/TN, recall, spesifisitas, presisi, ketepatan lokasi (per kriteria + total)
+    evaluasi_per_kriteria.csv   TP/FN/FP/TN, recall, spesifisitas, presisi, F1, akurasi, ketepatan lokasi (per kriteria + total mikro + rata-rata makro)
     evaluasi_per_cacat.csv      tingkat keterbacaan per jenis cacat (K02a, K06b, ...)
     evaluasi_per_basis.csv      metrik per naskah basis (T01 ... T05) dan alarm palsu pada kontrol V00
     evaluasi_netral.csv         varian netral (N14a/b): apakah sistem memberi alarm palsu
@@ -41,7 +41,7 @@ Definisi metrik (per kriteria k, status dihitung dari temuan NON-Crossref agar K
     terbaca (TP)  : k disisipi cacat dan status k = warn/fail          tak terbaca (FN): k disisipi cacat, status k = pass/skip
     alarm palsu (FP): k TIDAK disisipi cacat (dan bukan efek turunan yang dinyatakan operator), status k berbeda dari kontrol V00
                       basisnya; pada V00 sendiri: status k bukan pass.     TN: kebalikan FP.
-    recall = TP/(TP+FN)   spesifisitas = TN/(TN+FP)   presisi = TP/(TP+FP)
+    recall = TP/(TP+FN)   spesifisitas = TN/(TN+FP)   presisi = TP/(TP+FP)   F1 = 2TP/(2TP+FP+FN)   akurasi = (TP+TN)/semua
     ketepatan lokasi: temuan kriteria k menunjuk paragraf yang sama dengan lokasi cacat (hanya untuk cacat berlokasi paragraf)
 Catatan: ini mengukur sistem terhadap cacat BUATAN yang diketahui; varian dari operator yang sama bukan sampel independen.
 """
@@ -202,6 +202,15 @@ def ratio(a, b):
     return round(a / b, 4) if b else ""
 
 
+def f1_score(tp, fn, fp):
+    """F1 = 2*presisi*recall/(presisi+recall) = 2TP/(2TP+FP+FN)."""
+    return ratio(2 * tp, 2 * tp + fp + fn)
+
+
+def accuracy(tp, fn, fp, tn):
+    return ratio(tp + tn, tp + fn + fp + tn)
+
+
 def evaluate(res, meta, catalog):
     """res: file -> digest; meta: file -> info (base/type/defects). Kembalikan dict tabel hasil evaluasi."""
     ref_of = {}
@@ -297,15 +306,23 @@ def evaluate(res, meta, catalog):
         crit_rows.append([f"K{k:02d}", c["TP"] + c["FN"], c["TP"], c["FN"], ratio(c["TP"], c["TP"] + c["FN"]),
                           ratio(c["TPs"], c["Ns"]), ratio(c["TPm"], c["Nm"]), c["FP"], c["TN"],
                           ratio(c["TN"], c["TN"] + c["FP"]), ratio(c["TP"], c["TP"] + c["FP"]),
-                          c["FP_ctl"], ratio(c["loc_ok"], c["loc_n"]), c["loc_ok"], c["loc_n"]])
+                          c["FP_ctl"], ratio(c["loc_ok"], c["loc_n"]), c["loc_ok"], c["loc_n"],
+                          f1_score(c["TP"], c["FN"], c["FP"]), accuracy(c["TP"], c["FN"], c["FP"], c["TN"])])
     recalls = [r[4] for r in crit_rows if r[4] != ""]
     specs = [r[9] for r in crit_rows if r[9] != ""]
+    precs = [r[10] for r in crit_rows if r[10] != ""]
+    f1s = [r[15] for r in crit_rows if r[15] != ""]
+    accs = [r[16] for r in crit_rows if r[16] != ""]
+
+    def mean(xs):
+        return round(sum(xs) / len(xs), 4) if xs else ""
     crit_rows.append(["TOTAL (mikro)", tot["TP"] + tot["FN"], tot["TP"], tot["FN"], ratio(tot["TP"], tot["TP"] + tot["FN"]),
                       ratio(tot["TPs"], tot["Ns"]), ratio(tot["TPm"], tot["Nm"]), tot["FP"], tot["TN"],
                       ratio(tot["TN"], tot["TN"] + tot["FP"]), ratio(tot["TP"], tot["TP"] + tot["FP"]),
-                      sum(conf[k]["FP_ctl"] for k in CRIT), ratio(tot["loc_ok"], tot["loc_n"]), tot["loc_ok"], tot["loc_n"]])
-    crit_rows.append(["RATA-RATA (makro)", "", "", "", round(sum(recalls) / len(recalls), 4) if recalls else "", "", "", "", "",
-                      round(sum(specs) / len(specs), 4) if specs else "", "", "", "", "", ""])
+                      sum(conf[k]["FP_ctl"] for k in CRIT), ratio(tot["loc_ok"], tot["loc_n"]), tot["loc_ok"], tot["loc_n"],
+                      f1_score(tot["TP"], tot["FN"], tot["FP"]), accuracy(tot["TP"], tot["FN"], tot["FP"], tot["TN"])])
+    crit_rows.append(["RATA-RATA (makro)", "", "", "", mean(recalls), "", "", "", "",
+                      mean(specs), mean(precs), "", "", "", "", mean(f1s), mean(accs)])
 
     code_rows = [[v["code"], f"K{v['criterion']:02d}", catalog.get(v["code"], {}).get("description", ""),
                   catalog.get(v["code"], {}).get("kind", ""), v["n"], v["ok"], ratio(v["ok"], v["n"]), v["ns"], v["oks"],
@@ -339,8 +356,10 @@ def evaluate(res, meta, catalog):
     intact_rows = [[st, n] for st, n in sorted(intact.items())]
 
     summary = {"mikro": dict(zip(["n_cacat", "terbaca", "tak_terbaca", "recall", "recall_tunggal", "recall_majemuk", "FP", "TN",
-                                  "spesifisitas", "presisi", "FP_kontrol", "lokasi_tepat", "lokasi_ok", "lokasi_n"], crit_rows[-2][1:])),
+                                  "spesifisitas", "presisi", "FP_kontrol", "lokasi_tepat", "lokasi_ok", "lokasi_n", "f1", "akurasi"],
+                                 crit_rows[-2][1:])),
                "recall_makro": crit_rows[-1][4], "spesifisitas_makro": crit_rows[-1][9],
+               "presisi_makro": crit_rows[-1][10], "f1_makro": crit_rows[-1][15], "akurasi_makro": crit_rows[-1][16],
                "kontrol_tidak_100": {b["base"]: b["control_nonpass"] for b in by_base.values() if b["control_nonpass"]}}
     return {"crit_rows": crit_rows, "code_rows": code_rows, "base_rows": base_rows, "detail": detail, "alarms": alarms,
             "neutral": neutral, "xl_rows": xl_rows, "intact_rows": intact_rows, "summary": summary}
@@ -468,7 +487,7 @@ def main(argv=None):
         ev = evaluate({f: results[f] for f in results}, meta, catalog)
         write_csv(out / "evaluasi_per_kriteria.csv",
                   ["kriteria", "cacat_disisipkan", "terbaca_TP", "tak_terbaca_FN", "recall", "recall_tunggal", "recall_majemuk",
-                   "alarm_palsu_FP", "TN", "spesifisitas", "presisi", "FP_pada_kontrol", "ketepatan_lokasi", "lokasi_tepat", "lokasi_dinilai"],
+                   "alarm_palsu_FP", "TN", "spesifisitas", "presisi", "FP_pada_kontrol", "ketepatan_lokasi", "lokasi_tepat", "lokasi_dinilai", "F1", "akurasi"],
                   ev["crit_rows"])
         write_csv(out / "evaluasi_per_cacat.csv",
                   ["kode", "kriteria", "deskripsi", "jenis_operator", "n", "terbaca", "tingkat", "n_tunggal", "terbaca_tunggal", "tingkat_tunggal"],

@@ -18,6 +18,13 @@ Penamaan (awalan diambil dari nama basis sebelum "-Base"):
     K07e  Penulis Korespondensi di luar tabel                            K07f  Informasi/Riwayat Artikel di luar tabel
     K08d  Abstrak di luar tabel                                          K09c  Kata Kunci di luar tabel
     N14a  singkatan huruf kecil (dfl, pkg, src, cfg, env) tanpa miring   N14b  nama berkas/identifier/URL tanpa miring
+  Operator tambahan v1.2 (aktif bersama --no-ext / --no-benign yang sama):
+    K07g  nama, afiliasi, email korespondensi digabung satu baris        K07h  email di baris pertama (urutan terbalik)
+    K08e  font isi abstrak Arial                                         K08f  ukuran isi abstrak 12 pt
+    K08g  isi abstrak rata kiri (seharusnya rata kiri-kanan)             K09d  kata kunci rata kiri-kanan (seharusnya kiri)
+    K14e  spasi ganda di dalam kalimat                                   K14f  baris kosong (Enter) di antara paragraf
+    K15d  ukuran isi tabel 10 pt          K15e  font isi tabel Arial     K15f  isi tabel rata kiri    K15g  baris pertama tabel tidak tebal
+    N14c  NETRAL: Tab di awal paragraf    N15a  NETRAL: baris data tabel dicetak tebal
   Operator tambahan dibangkitkan sebagai varian tunggal dan TIDAK masuk kolam varian majemuk/EA-EB, sehingga varian
   M03/M06/M09/EA/EB yang pernah dibangkitkan dengan seed yang sama tidak berubah (gunakan --pool-ext bila ingin
   memasukkannya; hasil majemuk/EA/EB lalu berbeda).
@@ -71,7 +78,7 @@ from docx.text.paragraph import Paragraph                   # noqa: E402
 import docx_edit as E                                       # noqa: E402
 from checker import m2_parser, m3_rules                     # noqa: E402
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 
 class NotApplicable(Exception):
@@ -188,6 +195,27 @@ def k02b(c):
         s.left_margin = Cm(1.5)
 
 
+def _split_section_before(c, sec_idx, heading_idx):
+    """Pecah section `sec_idx` tepat sebelum heading pertama (seperti Layout > Breaks > Continuous di Word).
+    Bagian atas mempertahankan pengaturan asli, bagian bawah (isi) dimulai sebagai section Continuous."""
+    heading = c.paras[heading_idx]._p
+    final_sp = c.doc.sections[sec_idx]._sectPr
+    prev = heading.getprevious()
+    if prev is None or prev.tag != qn("w:p"):                 # sebelum heading ada tabel: sisipkan paragraf kosong pembawa section
+        prev = OxmlElement("w:p")
+        heading.addprevious(prev)
+    ppr = prev.find(qn("w:pPr"))
+    if ppr is None:
+        ppr = OxmlElement("w:pPr")
+        prev.insert(0, ppr)
+    ppr.append(copy.deepcopy(final_sp))                       # section atas = salinan pengaturan awal
+    typ = final_sp.find(qn("w:type"))
+    if typ is None:
+        typ = OxmlElement("w:type")
+        final_sp.find(qn("w:pgSz")).addprevious(typ)          # urutan skema: type sebelum pgSz
+    typ.set(qn("w:val"), "continuous")
+
+
 def _identity_body_sections(c):
     heads = c.pd.headings
     if not heads:
@@ -195,8 +223,13 @@ def _identity_body_sections(c):
     cut = heads[0].idx
     ident = sorted({p.section_index for p in c.pd.paras if p.text and p.idx < cut})
     body = sorted({p.section_index for p in c.pd.paras if p.text and p.idx >= cut})
-    if set(ident) & set(body):
-        raise NotApplicable("basis tidak memiliki section terpisah untuk bagian identitas")
+    shared = set(ident) & set(body)
+    if shared:
+        if len(shared) != 1:
+            raise NotApplicable("batas section identitas/isi pada basis tidak dapat ditentukan")
+        sec = shared.pop()                                    # basis satu section (mis. template 1 kolom): pecah dulu
+        _split_section_before(c, sec, cut)
+        body = sorted({i + 1 if i >= sec else i for i in body})
     return ident, body
 
 
@@ -1174,6 +1207,142 @@ def k07f(c):
     _move_out(c, pars, c.paras[entries[0]["idx"]])
 
 
+# ---- operator tambahan v1.2: format abstrak/kata kunci, penulis korespondensi, isi tabel, spasi kosong -------------
+def _abstract_format(c, run_fn=None, align=None):
+    for par in _abstract_pars(c):
+        c.mark(par)
+        if align is not None:
+            par.alignment = align
+        if run_fn is not None:
+            for r in E.inline_runs(par):
+                run_fn(r)
+
+
+@op("K08e", 8, "font isi abstrak Arial (seharusnya Cambria)", kind="ext")
+def k08e(c):
+    _abstract_format(c, run_fn=lambda r: setattr(r.font, "name", "Arial"))
+
+
+@op("K08f", 8, "ukuran huruf isi abstrak 12 pt (seharusnya 10 pt)", kind="ext")
+def k08f(c):
+    _abstract_format(c, run_fn=lambda r: setattr(r.font, "size", Pt(12)))
+
+
+@op("K08g", 8, "isi abstrak rata kiri (seharusnya rata kiri-kanan)", kind="ext")
+def k08g(c):
+    _abstract_format(c, align=WD_ALIGN_PARAGRAPH.LEFT)
+
+
+@op("K09d", 9, "kata kunci rata kiri-kanan (seharusnya rata kiri)", kind="ext")
+def k09d(c):
+    _, label, _, rest = _kw_info(c)
+    for par in [label] + rest:
+        c.mark(par)
+        par.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+
+
+def _corr_lines(c):
+    """Paragraf label + tiga baris (nama, afiliasi, email) penulis korespondensi; NotApplicable bila basis berbeda bentuk."""
+    corr = c.pd.corresponding
+    if not corr or corr.get("inline") or len(corr.get("lines", [])) < 3:
+        raise NotApplicable("penulis korespondensi pada basis tidak berbentuk label + tiga baris terpisah")
+    return c.paras[corr["idx"]], [c.paras[ln["idx"]] for ln in corr["lines"]]
+
+
+@op("K07g", 7, "nama, afiliasi, dan email penulis korespondensi digabung dalam satu baris", kind="ext")
+def k07g(c):
+    label, pars = _corr_lines(c)
+    joined = ", ".join(E.par_text(q).strip() for q in pars if E.par_text(q).strip())
+    first = pars[0]
+    c.mark(label)
+    E.replace_range(first, 0, len(E.par_text(first)), joined)
+    for q in pars[1:]:
+        E.delete_paragraph(q)
+
+
+@op("K07h", 7, "email penulis korespondensi ditulis di baris pertama (urutan nama, afiliasi, email terbalik)", kind="ext")
+def k07h(c):
+    _, pars = _corr_lines(c)
+    first, last = pars[0], pars[-1]
+    ta, tz = E.par_text(first), E.par_text(last)
+    E.replace_range(first, 0, len(ta), tz)
+    E.replace_range(last, 0, len(tz), ta)
+    c.mark(first)
+
+
+def _table_cells(c, header=None):
+    """Paragraf bersuara di sel tabel isi (di luar kotak identitas). header=True: hanya baris pertama; False: selain baris pertama."""
+    front = {t["index"] for t in c.pd.tables if t["front"]}
+    items = [p for p in c.pd.paras if p.table_index is not None and p.table_index not in front and p.text
+             and (header is None or (p.table_row == 0) == header)]
+    if not items:
+        raise NotApplicable("tidak ada tabel isi pada basis")
+    return items
+
+
+def _on_cells(c, fn, header=None):
+    chosen = c.pick(_table_cells(c, header))
+    for info in chosen:
+        par = c.paras[info.idx]
+        c.mark(par)
+        fn(par)
+
+
+@op("K15d", 15, "ukuran huruf isi tabel 10 pt pada 30% sel (seharusnya 8 pt)", kind="ext")
+def k15d(c):
+    _on_cells(c, lambda par: [setattr(r.font, "size", Pt(10)) for r in E.inline_runs(par)])
+
+
+@op("K15e", 15, "font isi tabel Arial pada 30% sel (seharusnya Cambria)", kind="ext")
+def k15e(c):
+    _on_cells(c, lambda par: [setattr(r.font, "name", "Arial") for r in E.inline_runs(par)])
+
+
+@op("K15f", 15, "isi tabel rata kiri pada 30% sel (seharusnya rata tengah)", kind="ext")
+def k15f(c):
+    _on_cells(c, lambda par: setattr(par, "alignment", WD_ALIGN_PARAGRAPH.LEFT))
+
+
+@op("K15g", 15, "teks baris pertama tabel (judul kolom) tidak tebal", kind="ext")
+def k15g(c):
+    head = _table_cells(c, header=True)
+    if not any(p.bold for p in head):
+        raise NotApplicable("baris pertama tabel pada basis memang tidak tebal")
+    for info in head:
+        par = c.paras[info.idx]
+        c.mark(par)
+        for r in E.inline_runs(par):
+            r.font.bold = False
+
+
+@op("K14e", 14, "spasi ganda di dalam kalimat pada 30% paragraf isi", kind="ext")
+def k14e(c):
+    def f(par):
+        t = E.par_text(par)
+        i = t.find(" ", 20)
+        if i < 0:
+            raise NotApplicable("paragraf tanpa spasi untuk digandakan")
+        E.replace_range(par, i, i, " ")
+    _on_body(c, f)
+
+
+@op("K14f", 14, "baris kosong (Enter) di antara paragraf isi pada 30% paragraf", kind="ext")
+def k14f(c):
+    order = {p.idx: i for i, p in enumerate(c.pd.paras)}
+    paras = c.pd.paras
+    cand = [p for p in c.body(15) if order[p.idx] + 1 < len(paras)
+            and paras[order[p.idx] + 1].role == "body" and paras[order[p.idx] + 1].text]
+    if not cand:
+        raise NotApplicable("tidak ada pasangan paragraf isi berurutan")
+    for info in c.pick(cand):
+        par = c.paras[info.idx]
+        c.mark(par)                                          # lokasi temuan = paragraf tepat sebelum baris kosong
+        blank = E.clone_after(par)
+        for ch in list(blank._p):
+            if ch.tag != qn("w:pPr"):
+                blank._p.remove(ch)
+
+
 # ---- varian NETRAL (kontrol negatif): bukan cacat, sistem harus tetap menilai sesuai -----------------------------
 BENIGN_ABBR = " Kolom dfl dan pkg dibaca dari berkas src, lalu parameter cfg dan env diatur."
 BENIGN_CODE = " Berkas model.pkl dan pkg_1 disimpan di src/utils; contoh tersedia di https://github.com/user/pkg/dfl."
@@ -1200,6 +1369,29 @@ def n14a(c):
     kind="benign")
 def n14b(c):
     _append_benign(c, BENIGN_CODE)
+
+
+@op("N14c", 14, "NETRAL: Tab di awal paragraf (indentasi baris pertama tetap 1,27 cm); seharusnya BUKAN pelanggaran blank space",
+    kind="benign")
+def n14c(c):
+    items = c.body(15)
+    if not items:
+        raise NotApplicable("tidak ada paragraf isi")
+    for info in c.pick(items, frac=0.2, n_min=2):
+        par = c.paras[info.idx]
+        first = next(iter(E.inline_runs(par)), None)
+        if first is None:
+            continue
+        c.mark(par)
+        r = OxmlElement("w:r")
+        r.append(OxmlElement("w:tab"))
+        first._r.addprevious(r)
+
+
+@op("N15a", 15, "NETRAL: teks pada baris data tabel (bukan baris pertama) dicetak tebal; seharusnya BUKAN pelanggaran",
+    kind="benign")
+def n15a(c):
+    _on_cells(c, lambda par: [setattr(r.font, "bold", True) for r in E.inline_runs(par)], header=False)
 
 
 # ---- R01 verifikasi Crossref (varian referensi) --------------------------------------------------
