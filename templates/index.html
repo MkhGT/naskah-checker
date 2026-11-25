@@ -17,17 +17,17 @@
   'K03': ('Jumlah kolom', 'Bagian judul sampai kata kunci ditulis dalam satu kolom. Mulai dari Pendahuluan, isi naskah ' ~ kolom ~ ' kolom.'),
   'K04': ('Jumlah halaman', 'Penelitian orisinal paling banyak ' ~ hal_asli ~ ' halaman. Artikel review atau survei paling banyak ' ~ hal_review ~ ' halaman.'),
   'K05': ('Header dan Footer', 'Isi header & footer setiap halaman mengikuti template: berbeda untuk halaman pertama, ganjil, dan genap, memuat nomor halaman otomatis, dan dibuat di dalam tabel.'),
-  'K06': ('Judul', 'Huruf Cambria ukuran 16 pt, tebal, rata tengah, paling banyak 15 kata. Hindari kata seperti “tinjauan”, “studi kasus”, atau “analisis”.'),
+  'K06': ('Judul', 'Huruf Cambria ukuran 16, tebal, di tengah, paling banyak 15 kata. Hindari kata seperti “tinjauan”, “studi kasus”, atau “analisis”.'),
   'K07': ('Penulis dan institusi', 'Nama penulis dan institusinya ditulis di tengah, di bawah judul, dihubungkan dengan angka kecil (superscript). Penulis korespondensi (Co-Author) dicantumkan pada tabel informasi artikel, ditulis per baris: nama penulis, afiliasi/instansi, lalu email.'),
   'K08': ('Abstrak', 'Ringkasan naskah sepanjang 100 sampai 250 kata, tanpa kutipan sumber, dan diletakkan di dalam kotak tabel seperti pada template. Huruf Cambria ukuran 10 dengan teks rata kiri-kanan.'),
-  'K09': ('Kata kunci', 'Tiga sampai lima kata kunci, diurutkan sesuai abjad, tanpa kata sambung “dan” atau “dari”, berada di dalam kotak tabel informasi artikel, dan teksnya rata kiri.'),
+  'K09': ('Kata kunci', 'Tiga sampai lima kata kunci, diurutkan sesuai abjad, tanpa kata sambung “dan” atau “dari”, berada di dalam kotak tabel, dan teksnya rata kiri.'),
   'K10': ('Kerangka isi naskah', 'Urutan bagian: Pendahuluan, Metode, Hasil dan Pembahasan, Kesimpulan, lalu Referensi. Ucapan terima kasih boleh ditambahkan. Bagian lain, misalnya Tinjauan Pustaka, tidak dipakai.'),
   'K11': ('Tampilan subjudul', 'Subjudul diberi nomor. Judul bagian utama tebal dan berhuruf kapital, subbagian tebal, sedangkan sub-subbagian tidak tebal. Jarak di atas dan bawahnya juga sudah ditentukan.'),
-  'K12': ('Huruf dan jarak antarbaris', 'Seluruh isi memakai huruf Cambria ukuran 10 pt dengan jarak antarbaris 1,15.'),
+  'K12': ('Huruf dan jarak antarbaris', 'Seluruh isi memakai huruf Cambria ukuran 10 dengan jarak antarbaris 1,15.'),
   'K13': ('Panjang Pendahuluan', 'Pendahuluan terdiri dari 3 sampai 6 paragraf.'),
-  'K14': ('Kerapian paragraf', 'Baris pertama tiap paragraf menjorok 1,27 cm dan teks rata kiri-kanan. Pada naskah berbahasa Indonesia, istilah asing seperti “machine learning” dicetak miring. Tidak ada spasi ganda, spasi atau Tab di awal paragraf, spasi sebelum tanda baca, maupun baris kosong yang dipakai sebagai jarak.'),
-  'K15': ('Keterangan gambar dan tabel', 'Gambar dan tabel diletakkan di tengah. Keterangan tabel ada di atasnya, keterangan gambar di bawahnya, dengan huruf ukuran 8 pt. Isi tabel memakai huruf Cambria ukuran 8 pt, rata tengah, dan baris pertama (judul kolom) dicetak tebal.'),
-  'K16': ('Gambar dan tabel disebut di teks', 'Setiap gambar dan tabel harus disebut dalam kalimat, misalnya “seperti terlihat pada Gambar 1”. Serta tidak berada di awal paragraf, misalnya "Gambar 1 menunjukan ...".'),
+  'K14': ('Kerapian paragraf', 'Baris pertama tiap paragraf menjorok 1,27 cm dan teks rata kiri-kanan. Pada naskah berbahasa Indonesia, istilah asing seperti “machine learning” dicetak miring. Tidak ada spasi ganda di dalam kalimat dan tidak ada baris kosong (Enter) di antara paragraf.'),
+  'K15': ('Keterangan gambar dan tabel', 'Gambar dan tabel diletakkan di tengah. Keterangan tabel ada di atasnya, keterangan gambar di bawahnya, dengan huruf ukuran 8. Isi tabel memakai huruf Cambria ukuran 8, rata tengah, dan baris pertama (judul kolom) dicetak tebal.'),
+  'K16': ('Gambar dan tabel disebut di teks', 'Setiap gambar dan tabel harus disebut dalam kalimat, misalnya “seperti terlihat pada Gambar 1”.'),
   'K17': ('Kesimpulan', 'Kesimpulan tidak mengulang isi abstrak dan memuat saran untuk penelitian selanjutnya.'),
   'K18': ('Kutipan dan daftar pustaka', 'Sumber dikutip dengan nomor, misalnya [1]. Daftar pustaka minimal 20 sumber bergaya IEEE, sebagian besar dari artikel jurnal terbaru. Setiap sumber juga dicocokkan dengan basis data Crossref.')
 } %}
@@ -95,15 +95,9 @@
           <strong class="drop-title" id="nama-berkas">Tarik berkas ke sini, atau klik untuk memilih</strong>
           <span class="drop-hint" id="hint-berkas">Format .docx dari Microsoft Word, maksimal 10 MB</span>
         </label>
-
         <div class="tpl-box">
           <span>Belum punya template?</span>
-          {% if TEMPLATE_URL %}
-          <a href="{{ TEMPLATE_URL }}" target="_blank" rel="noopener">Unduh template di sini</a>
-          {% else %}
-          {# isi alamat template lewat env TEMPLATE_URL, atau ganti langsung href di bawah #}
-          <a href="https://docs.google.com/uc?export=download&id=1CWtpXzb94sGmbtfSdFOwIUGjdyJoEuUE" class="off" aria-disabled="true">Unduh template di sini</a>
-          {% endif %}
+          <a href="https://docs.google.com/uc?export=download&id=1CWtpXzb94sGmbtfSdFOwIUGjdyJoEuUE" target="_blank" rel="noopener">Unduh template di sini</a>
         </div>
       </div>
 

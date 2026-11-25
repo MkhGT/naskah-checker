@@ -87,7 +87,7 @@ Tautan template di halaman upload bisa diisi dengan dua cara: set `TEMPLATE_URL`
 | K11 | Format subjudul | nomor rata di 0, teks menjorok 0,25 in (gantung 0,25 in); spasi H1 6/6, H2 6/3, H3 6/2 pt; tebal/kapital per level |
 | K12 | Jenis dan ukuran huruf, spasi | Cambria 10 pt, spasi 1,15 |
 | K13 | Jumlah paragraf Pendahuluan | 3-6 |
-| K14 | Format paragraf isi | indentasi 1,27 cm, rata kiri-kanan, istilah asing miring (naskah berbahasa Indonesia); tanpa spasi ganda, spasi/Tab di awal atau akhir paragraf, spasi sebelum tanda baca, dan baris kosong pengatur jarak |
+| K14 | Format paragraf isi | indentasi 1,27 cm, rata kiri-kanan, istilah asing miring (naskah berbahasa Indonesia); tanpa spasi ganda dan tanpa baris kosong (Enter) di antara paragraf |
 | K15 | Caption, posisi, perataan gambar/tabel, isi tabel | caption tabel di atas, gambar di bawah, tengah, 8 pt; isi tabel Cambria 8 pt rata tengah, baris pertama tebal |
 | K16 | Gambar dan tabel disitasi | dirujuk di teks |
 | K17 | Kesimpulan tidak mengulang abstrak | kemiripan kalimat/frasa; memuat saran |
@@ -115,7 +115,7 @@ diketik sebagai paragraf biasa dianggap tidak sesuai.
 - Format abstrak (font, ukuran, perataan) dan perataan kata kunci diatur di `params.format` pada K08 dan K09 di `rules.json`. Hasilnya berupa peringatan, bukan kesalahan.
 - K07: penulis korespondensi harus berbentuk label, lalu nama, afiliasi/instansi, dan email, masing-masing di paragraf sendiri (`corresponding_lines`). Email boleh diawali "Email:" tetapi tidak boleh digabung dengan teks lain.
 - K15: isi tabel di luar kotak identitas diperiksa lewat `table_content` (font, ukuran, perataan, `header_bold` untuk baris pertama). Temuan diringkas per tabel dengan jumlah sel yang menyimpang.
-- K14: `blank_space` memeriksa spasi ganda, spasi/Tab di awal atau akhir paragraf, spasi sebelum tanda baca, dan baris kosong yang dipakai sebagai jarak. Baris kosong yang memuat jeda halaman, akhir section, atau tepat setelah tabel diabaikan. Tiap pemeriksaan bisa dimatikan satu per satu di `rules.json`.
+- K14: `blank_space` memeriksa spasi ganda di dalam paragraf dan baris kosong (Enter) di antara paragraf. Baris kosong yang memuat jeda halaman, akhir section, atau tepat setelah tabel diabaikan. Komentar baris kosong dipasang pada paragraf tepat sebelumnya. Keduanya bisa dimatikan satu per satu di `rules.json`.
 - Yang dicek hanya letaknya di dalam tabel, bukan gaya garis, lebar kolom, atau jumlah baris.
 - Hanya header/footer section pertama yang dibaca.
 - Tiap pemeriksaan bisa dimatikan dari `rules.json` tanpa mengubah kode.

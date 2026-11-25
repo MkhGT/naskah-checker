@@ -321,7 +321,7 @@
         "line_spacing_tolerance": 0.05,
         "size_tolerance": 0.1
       },
-      "sumber": "huruf Cambria 10 pt; spasi 1,15 (style Normal pada template; teks template menyebut \"spasi tunggal\", tetapi style-nya 1,15)"
+      "sumber": "huruf Cambria 10 pt; spasi 1,15"
     },
     {
       "id": 13,
@@ -394,12 +394,10 @@
         },
         "blank_space": {
           "double_space": true,
-          "edge_space": true,
-          "space_before_punct": true,
           "empty_paragraphs": true
         }
       },
-      "sumber": "Tata letak rata kiri-kanan; paragraf menjorok 1,27 cm; pada naskah berbahasa Indonesia, istilah asing di paragraf/isi subbab dicetak miring (italic), tidak berlaku untuk naskah berbahasa asing; tidak ada spasi ganda, spasi/Tab di awal atau akhir paragraf, spasi sebelum tanda baca, atau baris kosong pengatur jarak"
+      "sumber": "Tata letak rata kiri-kanan; paragraf menjorok 1,27 cm; pada naskah berbahasa Indonesia, istilah asing di paragraf/isi subbab dicetak miring (italic), tidak berlaku untuk naskah berbahasa asing; tidak ada spasi ganda atau baris kosong pengatur jarak"
     },
     {
       "id": 15,

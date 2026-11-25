@@ -449,17 +449,13 @@ def check_figure_citations(pd, prm, res, opt):
 
 def _check_blank_space(pd, cfg, res):
     """Spasi/baris kosong yang tidak perlu pada paragraf isi."""
-    dbl, edge, punct, empty = [], [], [], []
+    dbl,  empty = [], []
     for p in pd.paras:
         if p.role not in ("body", "list") or not p.text:
             continue
         t = p.raw_text or p.text
         if cfg.get("double_space") and re.search(r"(?<=\S) {2,}(?=\S)", t):
             dbl.append((p.idx, "Terdapat spasi ganda di dalam paragraf."))
-        if cfg.get("edge_space") and (t != t.lstrip(" \t") or t != t.rstrip(" \t")):
-            edge.append((p.idx, "Paragraf diawali atau diakhiri spasi/Tab; gunakan pengaturan indentasi paragraf."))
-        if cfg.get("space_before_punct") and re.search(r"\S +[,;:!?.](?=\s|$)", t.replace("...", "")):
-            punct.append((p.idx, "Ada spasi sebelum tanda baca (koma, titik, titik dua, dan sejenisnya)."))
     if cfg.get("empty_paragraphs"):
         paras = pd.paras
         i = 0
@@ -484,10 +480,8 @@ def _check_blank_space(pd, cfg, res):
                                      "Paragraph, bukan dengan menekan Enter."))
             i = j + 1
     res.add_many(dbl, "{n} paragraf lain juga memuat spasi ganda.", suggestion="Hapus spasi berlebih (Ctrl+H: dua spasi diganti satu).")
-    res.add_many(edge, "{n} paragraf lain juga diawali/diakhiri spasi.", suggestion="Hapus spasi/Tab di awal dan akhir paragraf.")
-    res.add_many(punct, "{n} paragraf lain juga memuat spasi sebelum tanda baca.", suggestion="Rapatkan tanda baca dengan kata sebelumnya.")
     res.add_many(empty, "{n} baris kosong lain tidak ditampilkan.", suggestion="Hapus baris kosong; atur Spacing After pada paragraf.")
-    return len(dbl) + len(edge) + len(punct) + len(empty)
+    return len(dbl) + len(empty)
 
 
 def check_body_paragraph(pd, prm, res, opt):
