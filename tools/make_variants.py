@@ -23,7 +23,7 @@ Penamaan (awalan diambil dari nama basis sebelum "-Base"):
     K08e  font isi abstrak Arial                                         K08f  ukuran isi abstrak 12 pt
     K08g  isi abstrak rata kiri (seharusnya rata kiri-kanan)             K09d  kata kunci rata kiri-kanan (seharusnya kiri)
     K14e  spasi ganda di dalam kalimat                                   K14f  baris kosong (Enter) di antara paragraf
-    K15d  ukuran isi tabel 10 pt          K15e  font isi tabel Arial     K15f  isi tabel rata kiri    K15g  baris pertama tabel tidak tebal
+    K15d  ukuran isi tabel 10 pt          K15e  font isi tabel Arial     K15g  baris pertama tabel tidak tebal
     N14c  NETRAL: Tab di awal paragraf    N15a  NETRAL: baris data tabel dicetak tebal
   Operator tambahan dibangkitkan sebagai varian tunggal dan TIDAK masuk kolam varian majemuk/EA-EB, sehingga varian
   M03/M06/M09/EA/EB yang pernah dibangkitkan dengan seed yang sama tidak berubah (gunakan --pool-ext bila ingin
@@ -1296,11 +1296,6 @@ def k15d(c):
 @op("K15e", 15, "font isi tabel Arial pada 30% sel (seharusnya Cambria)", kind="ext")
 def k15e(c):
     _on_cells(c, lambda par: [setattr(r.font, "name", "Arial") for r in E.inline_runs(par)])
-
-
-@op("K15f", 15, "isi tabel rata kiri pada 30% sel (seharusnya rata tengah)", kind="ext")
-def k15f(c):
-    _on_cells(c, lambda par: setattr(par, "alignment", WD_ALIGN_PARAGRAPH.LEFT))
 
 
 @op("K15g", 15, "teks baris pertama tabel (judul kolom) tidak tebal", kind="ext")
